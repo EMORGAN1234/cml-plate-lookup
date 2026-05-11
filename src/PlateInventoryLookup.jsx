@@ -121,7 +121,7 @@ function LoginGate({ onAuth }) {
               </svg>
             </div>
             <h1 className="text-2xl font-extrabold text-neutral-900 tracking-tight">
-              CML Plate Stock Lookup
+              Plate Stock Lookup
             </h1>
             <p className="text-sm text-neutral-500 mt-1">Champagne Metals — Internal</p>
           </div>
@@ -395,7 +395,7 @@ function PlateInventoryMain() {
                 </div>
                 <div>
                   <h1 className="text-2xl sm:text-3xl font-extrabold text-neutral-900 tracking-tight">
-                    CML Plate Stock Lookup
+                    Plate Stock Lookup
                   </h1>
                   <p className="text-sm text-neutral-500 font-medium mt-0.5">
                     Champagne Metals — Aluminum Plate Inventory
