@@ -168,13 +168,8 @@ function LoginGate({ onAuth }) {
   );
 }
 
-// ─── Component ───────────────────────────────────────────────────────────────
-export default function PlateInventoryLookup() {
-  const [authed, setAuthed] = useState(
-    () => sessionStorage.getItem('cml_plate_auth') === '1'
-  );
-
-  if (!authed) return <LoginGate onAuth={() => setAuthed(true)} />;
+// ─── Main inventory component (all hooks unconditional) ──────────────────────
+function PlateInventoryMain() {
   const [inventory, setInventory]     = useState([]);
   const [lastUpdated, setLastUpdated] = useState(null);
   const [filename, setFilename]       = useState('');
@@ -744,4 +739,14 @@ export default function PlateInventoryLookup() {
       </div>
     </>
   );
+}
+
+// ─── Auth wrapper — keeps hooks rules clean ───────────────────────────────────
+export default function PlateInventoryLookup() {
+  const [authed, setAuthed] = useState(
+    () => sessionStorage.getItem('cml_plate_auth') === '1'
+  );
+
+  if (!authed) return <LoginGate onAuth={() => setAuthed(true)} />;
+  return <PlateInventoryMain />;
 }
