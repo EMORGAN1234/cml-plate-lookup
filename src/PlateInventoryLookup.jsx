@@ -274,6 +274,14 @@ function PlateInventoryMain() {
       setLastUpdated(reportDate);
       setFilename(file.name);
       setUploadMsg(`✓ ${parsed.length} records loaded from ${file.name}`);
+
+      // Lock down and close after 2 seconds
+      setTimeout(() => {
+        setAdminAuth(false);
+        setAdminInput('');
+        setShowAdmin(false);
+        setUploadMsg('');
+      }, 2000);
     } catch (e) {
       setUploadMsg(`Error: ${e.message}`);
       console.error(e);
@@ -636,7 +644,6 @@ function PlateInventoryMain() {
                       <TH col="on_hand"       label="On Hand"     />
                       <TH col="tag"           label="Tag #"       />
                       <TH col="tag_cost"      label="$/lb"        />
-                      <TH col="oh_value"      label="OH Value"    />
                       <TH col="master_age"    label="Age"         />
                     </tr>
                   </thead>
@@ -700,16 +707,12 @@ function PlateInventoryMain() {
                             {row.tag || '—'}
                           </td>
                           {/* $/lb */}
-                          <td className="px-3 py-2.5 text-neutral-600 whitespace-nowrap">
+                          <td className="px-3 py-2.5 font-medium text-green-700 whitespace-nowrap">
                             ${row.tag_cost ? row.tag_cost.toFixed(4) : '—'}
                           </td>
-                          {/* OH Value */}
-                          <td className="px-3 py-2.5 font-medium text-green-700 whitespace-nowrap">
-                            ${row.oh_value ? row.oh_value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '—'}
-                          </td>
                           {/* Age */}
-                          <td className="px-3 py-2.5 text-neutral-400 whitespace-nowrap">
-                            {row.master_age > 0 ? `${row.master_age}d` : '—'}
+                          <td className={`px-3 py-2.5 font-semibold whitespace-nowrap ${row.master_age > 120 ? 'text-red-600' : 'text-neutral-400'}`}>
+                            {row.master_age > 0 ? row.master_age : '—'}
                           </td>
                         </tr>
                       );
