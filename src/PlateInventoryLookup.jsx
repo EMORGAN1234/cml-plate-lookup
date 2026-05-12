@@ -58,6 +58,9 @@ function parseRow(row) {
     return null;
   }
 
+  // Only show inventory owned by customer 301577
+  if (String(row[1] ?? '').trim() !== '301577') return null;
+
   const whs = String(row[10] ?? '').trim();
   if (!VALID_WHS.has(whs)) return null;
 
