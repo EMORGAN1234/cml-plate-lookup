@@ -21,13 +21,14 @@ const LOC_COLORS = {
   'COON RAPIDS': 'bg-green-100 text-green-800',
   GLENPOOL:      'bg-red-100 text-red-800',
   'SANTA TERESA':'bg-purple-100 text-purple-800',
-  // Middlebury — full name or abbreviation
   MIDDLEBURY:    'bg-teal-100 text-teal-800',
   MID:           'bg-teal-100 text-teal-800',
-  // Phoenix — full name or abbreviation
   PHOENIX:       'bg-orange-100 text-orange-800',
   PHO:           'bg-orange-100 text-orange-800',
 };
+
+// Always show these in the dropdown even if no current inventory exists
+const KNOWN_LOCATIONS = ['AURORA', 'COON RAPIDS', 'GLENPOOL', 'MIDDLEBURY', 'MID', 'PHOENIX', 'PHO', 'SANTA TERESA'];
 
 // ─── Row parser ──────────────────────────────────────────────────────────────
 // Column layout (0-indexed) from "On Hand Inventory":
@@ -298,7 +299,11 @@ function PlateInventoryMain() {
   const finishes  = useMemo(() => ['ALL', ...unique(inventory.map(r => r.finish)).sort()], [inventory]);
   const thicks    = useMemo(() => ['ALL', ...unique(inventory.map(r => r.thickness_str))
     .sort((a, b) => parseFloat(a) - parseFloat(b))], [inventory]);
-  const locations = useMemo(() => ['ALL', ...unique(inventory.map(r => r.location)).sort()], [inventory]);
+  const locations = useMemo(() => {
+    const fromData = unique(inventory.map(r => r.location));
+    const merged   = unique([...fromData, ...KNOWN_LOCATIONS]).sort();
+    return ['ALL', ...merged];
+  }, [inventory]);
 
   // ── Filter + sort ──
   const filtered = useMemo(() => {
