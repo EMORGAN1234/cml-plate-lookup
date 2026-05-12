@@ -8,8 +8,8 @@ const SUPABASE_KEY  = import.meta.env.VITE_SUPABASE_ANON_KEY;
 const supabase      = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ─── Constants ───────────────────────────────────────────────────────────────
-const SITE_PW  = import.meta.env.VITE_SITE_PASSWORD || 'cml2025'; // ← site-wide login
-const ADMIN_PW = 'cml2025'; // ← admin upload panel (can be different)
+const SITE_PW  = import.meta.env.VITE_SITE_PASSWORD || 'cml2025';
+const ADMIN_PW = 'cml2025';
 
 const DENSITIES = {
   '1100': 0.098, '2024': 0.101, '3003': 0.099, '5052': 0.0968,
@@ -17,10 +17,16 @@ const DENSITIES = {
 };
 
 const LOC_COLORS = {
-  AURORA:       'bg-blue-100 text-blue-800',
-  'COON RAPIDS':'bg-green-100 text-green-800',
-  GLENPOOL:     'bg-red-100 text-red-800',
+  AURORA:        'bg-blue-100 text-blue-800',
+  'COON RAPIDS': 'bg-green-100 text-green-800',
+  GLENPOOL:      'bg-red-100 text-red-800',
   'SANTA TERESA':'bg-purple-100 text-purple-800',
+  // Middlebury — full name or abbreviation
+  MIDDLEBURY:    'bg-teal-100 text-teal-800',
+  MID:           'bg-teal-100 text-teal-800',
+  // Phoenix — full name or abbreviation
+  PHOENIX:       'bg-orange-100 text-orange-800',
+  PHO:           'bg-orange-100 text-orange-800',
 };
 
 // ─── Row parser ──────────────────────────────────────────────────────────────
@@ -32,23 +38,23 @@ const LOC_COLORS = {
 function parseRow(row) {
   const thStr = String(row[9] ?? '').trim();
   return {
-    grade:        String(row[5]  ?? '').trim(),
-    finish:       String(row[6]  ?? '').trim(),
+    grade:         String(row[5]  ?? '').trim(),
+    finish:        String(row[6]  ?? '').trim(),
     thickness_str: thStr,
-    thickness:    parseFloat(thStr) || 0,
-    sht_sz:       String(row[10] ?? '').trim(),
-    width:        parseFloat(row[12]) || 0,
-    length:       parseFloat(row[13]) || 0,
-    location:     String(row[14] ?? '').trim(),
-    whs:          String(row[15] ?? '').trim(),
-    invt_qlty:    String(row[17] ?? '').trim(),
-    tag:          String(row[22] ?? '').trim(),
-    master_age:   parseInt(row[25])   || 0,
-    oh_value:     parseFloat(row[27]) || 0,
-    on_hand:      parseFloat(row[28]) || 0,
-    ord_resrv:    parseFloat(row[29]) || 0,
-    available_lbs:parseFloat(row[32]) || 0,
-    tag_cost:     parseFloat(row[33]) || 0,
+    thickness:     parseFloat(thStr) || 0,
+    sht_sz:        String(row[10] ?? '').trim(),
+    width:         parseFloat(row[12]) || 0,
+    length:        parseFloat(row[13]) || 0,
+    location:      String(row[14] ?? '').trim(),
+    whs:           String(row[15] ?? '').trim(),
+    invt_qlty:     String(row[17] ?? '').trim(),
+    tag:           String(row[22] ?? '').trim(),
+    master_age:    parseInt(row[25])   || 0,
+    oh_value:      parseFloat(row[27]) || 0,
+    on_hand:       parseFloat(row[28]) || 0,
+    ord_resrv:     parseFloat(row[29]) || 0,
+    available_lbs: parseFloat(row[32]) || 0,
+    tag_cost:      parseFloat(row[33]) || 0,
   };
 }
 
@@ -72,9 +78,9 @@ function unique(arr) {
 
 // ─── Login Gate ──────────────────────────────────────────────────────────────
 function LoginGate({ onAuth }) {
-  const [input, setInput]   = useState('');
-  const [shake, setShake]   = useState(false);
-  const [error, setError]   = useState(false);
+  const [input, setInput] = useState('');
+  const [shake, setShake] = useState(false);
+  const [error, setError] = useState(false);
 
   function attempt() {
     if (input === SITE_PW) {
@@ -111,7 +117,6 @@ function LoginGate({ onAuth }) {
       ` }} />
 
       <div className={`w-full max-w-sm fade-up ${shake ? 'shake' : ''}`}>
-        {/* Logo card */}
         <div className="bg-white rounded-2xl shadow-2xl border-t-4 border-red-600 p-8">
           <div className="flex flex-col items-center mb-8">
             <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-red-600 to-red-800 flex items-center justify-center shadow-lg mb-4">
@@ -177,20 +182,20 @@ function PlateInventoryMain() {
   const [loadError, setLoadError]     = useState(null);
 
   // Filters
-  const [fGrade,    setFGrade]    = useState('ALL');
-  const [fFinish,   setFFinish]   = useState('ALL');
-  const [fThick,    setFThick]    = useState('ALL');
-  const [fLoc,      setFLoc]      = useState('ALL');
-  const [fMinLbs,   setFMinLbs]   = useState('1');
-  const [fWidMin,   setFWidMin]   = useState('');
-  const [fWidMax,   setFWidMax]   = useState('');
-  const [fLenMin,   setFLenMin]   = useState('');
-  const [fLenMax,   setFLenMax]   = useState('');
-  const [search,    setSearch]    = useState('');
+  const [fGrade,  setFGrade]  = useState('ALL');
+  const [fFinish, setFFinish] = useState('ALL');
+  const [fThick,  setFThick]  = useState('ALL');
+  const [fLoc,    setFLoc]    = useState('ALL');
+  const [fMinLbs, setFMinLbs] = useState('1');
+  const [fWidMin, setFWidMin] = useState('');
+  const [fWidMax, setFWidMax] = useState('');
+  const [fLenMin, setFLenMin] = useState('');
+  const [fLenMax, setFLenMax] = useState('');
+  const [search,  setSearch]  = useState('');
 
-  // Sort
-  const [sortCol, setSortCol] = useState('grade');
-  const [sortDir, setSortDir] = useState('asc');
+  // Sort — default: oldest tags first (master_age descending)
+  const [sortCol, setSortCol] = useState('master_age');
+  const [sortDir, setSortDir] = useState('desc');
 
   // Pagination
   const [page, setPage] = useState(1);
@@ -241,12 +246,11 @@ function PlateInventoryMain() {
 
       const sheetName = wb.SheetNames.find(n => n.toLowerCase().includes('on hand'))
                      ?? wb.SheetNames[0];
-      const ws   = wb.Sheets[sheetName];
-      const raw  = XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, defval: null });
+      const ws  = wb.Sheets[sheetName];
+      const raw = XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, defval: null });
 
       if (raw.length < 2) throw new Error('Sheet appears empty or wrong tab selected.');
 
-      // Grab report date from first data row col 2
       const rawDate    = raw[1]?.[2];
       const reportDate = rawDate instanceof Date ? rawDate.toISOString()
                        : typeof rawDate === 'number'
@@ -254,7 +258,7 @@ function PlateInventoryMain() {
                          : new Date().toISOString();
 
       const parsed = raw.slice(1)
-        .filter(r => r[5]) // must have Grade
+        .filter(r => r[5])
         .map(parseRow);
 
       setUploadMsg(`Parsed ${parsed.length} rows — saving…`);
@@ -275,7 +279,6 @@ function PlateInventoryMain() {
       setFilename(file.name);
       setUploadMsg(`✓ ${parsed.length} records loaded from ${file.name}`);
 
-      // Lock down and close after 2 seconds
       setTimeout(() => {
         setAdminAuth(false);
         setAdminInput('');
@@ -291,19 +294,19 @@ function PlateInventoryMain() {
   }
 
   // ── Derived filter options ──
-  const grades     = useMemo(() => ['ALL', ...unique(inventory.map(r => r.grade)).sort()], [inventory]);
-  const finishes   = useMemo(() => ['ALL', ...unique(inventory.map(r => r.finish)).sort()], [inventory]);
-  const thicks     = useMemo(() => ['ALL', ...unique(inventory.map(r => r.thickness_str))
+  const grades    = useMemo(() => ['ALL', ...unique(inventory.map(r => r.grade)).sort()], [inventory]);
+  const finishes  = useMemo(() => ['ALL', ...unique(inventory.map(r => r.finish)).sort()], [inventory]);
+  const thicks    = useMemo(() => ['ALL', ...unique(inventory.map(r => r.thickness_str))
     .sort((a, b) => parseFloat(a) - parseFloat(b))], [inventory]);
-  const locations  = useMemo(() => ['ALL', ...unique(inventory.map(r => r.location)).sort()], [inventory]);
+  const locations = useMemo(() => ['ALL', ...unique(inventory.map(r => r.location)).sort()], [inventory]);
 
   // ── Filter + sort ──
   const filtered = useMemo(() => {
     let rows = inventory;
-    if (fGrade  !== 'ALL') rows = rows.filter(r => r.grade        === fGrade);
-    if (fFinish !== 'ALL') rows = rows.filter(r => r.finish       === fFinish);
+    if (fGrade  !== 'ALL') rows = rows.filter(r => r.grade         === fGrade);
+    if (fFinish !== 'ALL') rows = rows.filter(r => r.finish        === fFinish);
     if (fThick  !== 'ALL') rows = rows.filter(r => r.thickness_str === fThick);
-    if (fLoc    !== 'ALL') rows = rows.filter(r => r.location     === fLoc);
+    if (fLoc    !== 'ALL') rows = rows.filter(r => r.location      === fLoc);
     const minLbs = parseFloat(fMinLbs);
     if (!isNaN(minLbs))   rows = rows.filter(r => r.available_lbs >= minLbs);
     if (fWidMin) rows = rows.filter(r => r.width  >= parseFloat(fWidMin));
@@ -313,11 +316,11 @@ function PlateInventoryMain() {
     if (search.trim()) {
       const s = search.toLowerCase();
       rows = rows.filter(r =>
-        r.tag?.toLowerCase().includes(s)        ||
-        r.grade?.toLowerCase().includes(s)      ||
-        r.finish?.toLowerCase().includes(s)     ||
-        r.location?.toLowerCase().includes(s)   ||
-        r.thickness_str?.includes(s)            ||
+        r.tag?.toLowerCase().includes(s)       ||
+        r.grade?.toLowerCase().includes(s)     ||
+        r.finish?.toLowerCase().includes(s)    ||
+        r.location?.toLowerCase().includes(s)  ||
+        r.thickness_str?.includes(s)           ||
         r.sht_sz?.toLowerCase().includes(s)
       );
     }
@@ -345,6 +348,8 @@ function PlateInventoryMain() {
     setFGrade('ALL'); setFFinish('ALL'); setFThick('ALL'); setFLoc('ALL');
     setFMinLbs('1'); setFWidMin(''); setFWidMax(''); setFLenMin(''); setFLenMax('');
     setSearch(''); setPage(1);
+    // Restore default: oldest first
+    setSortCol('master_age'); setSortDir('desc');
   }
 
   const Arrow = ({ col }) =>
@@ -513,10 +518,10 @@ function PlateInventoryMain() {
 
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
               {[
-                { label: 'Grade', val: fGrade,  set: setFGrade,  opts: grades },
-                { label: 'Temper', val: fFinish, set: setFFinish, opts: finishes },
-                { label: 'Thickness"', val: fThick, set: setFThick, opts: thicks },
-                { label: 'Location', val: fLoc,   set: setFLoc,   opts: locations },
+                { label: 'Grade',    val: fGrade,  set: setFGrade,  opts: grades },
+                { label: 'Temper',   val: fFinish, set: setFFinish, opts: finishes },
+                { label: 'Gauge"',   val: fThick,  set: setFThick,  opts: thicks },
+                { label: 'Location', val: fLoc,    set: setFLoc,    opts: locations },
               ].map(({ label, val, set, opts }) => (
                 <div key={label}>
                   <label className="block text-xs font-semibold mb-1.5 text-neutral-600">{label}</label>
@@ -634,24 +639,24 @@ function PlateInventoryMain() {
                 <table className="w-full text-sm">
                   <thead className="bg-neutral-800">
                     <tr>
-                      <TH col="grade"         label="Grade"       />
-                      <TH col="finish"        label="Temper"      />
-                      <TH col="thickness"     label='Thick"'      />
-                      <TH col="width"         label='Width"'      />
-                      <TH col="length"        label='Length"'     />
-                      <TH col="location"      label="Location"    />
-                      <TH col="available_lbs" label="Avail Lbs"   />
-                      <TH col="on_hand"       label="On Hand"     />
-                      <TH col="tag"           label="Tag #"       />
-                      <TH col="tag_cost"      label="$/lb"        />
-                      <TH col="master_age"    label="Age"         />
+                      <TH col="grade"         label="Grade"      />
+                      <TH col="finish"        label="Temper"     />
+                      <TH col="thickness"     label='Gauge"'     />
+                      <TH col="width"         label='Width"'     />
+                      <TH col="length"        label='Length"'    />
+                      <TH col="location"      label="Location"   />
+                      <TH col="available_lbs" label="Avail Lbs"  />
+                      <TH col="on_hand"       label="On Hand"    />
+                      <TH col="tag"           label="Tag #"      />
+                      <TH col="tag_cost"      label="$/lb"       />
+                      <TH col="master_age"    label="Age"        />
                     </tr>
                   </thead>
                   <tbody>
                     {pageRows.map((row, i) => {
-                      const pcs       = approxPcs(row);
-                      const locCls    = LOC_COLORS[row.location] || 'bg-neutral-100 text-neutral-700';
-                      const hasResrv  = (row.on_hand - row.available_lbs) > 0.5;
+                      const pcs      = approxPcs(row);
+                      const locCls   = LOC_COLORS[row.location] || 'bg-neutral-100 text-neutral-700';
+                      const hasResrv = (row.on_hand - row.available_lbs) > 0.5;
 
                       return (
                         <tr
@@ -666,8 +671,8 @@ function PlateInventoryMain() {
                           <td className="px-3 py-2.5 font-medium text-neutral-600 whitespace-nowrap">
                             {row.finish}
                           </td>
-                          {/* Thickness */}
-                          <td className="px-3 py-2.5 font-bold text-red-700 whitespace-nowrap">
+                          {/* Gauge */}
+                          <td className="px-3 py-2.5 font-bold text-orange-500 whitespace-nowrap">
                             {row.thickness_str}"
                           </td>
                           {/* Width */}
