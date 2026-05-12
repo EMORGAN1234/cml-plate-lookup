@@ -648,20 +648,15 @@ function PlateInventoryMain() {
                       <TH col="available_lbs" label="Avail Lbs"  />
                       <TH col="on_hand"       label="On Hand"    />
                       <TH col="tag"           label="Tag #"      />
-                      {/* $/lb — custom header with pricing disclaimer */}
+                      {/* $/lb header with native title tooltip */}
                       <th
                         onClick={() => toggleSort('tag_cost')}
                         className="group px-3 py-3 text-left text-xs font-semibold text-neutral-300 uppercase tracking-wider cursor-pointer select-none whitespace-nowrap hover:text-white transition-colors"
                       >
-                        <span className="inline-flex items-center gap-0.5">
-                          $/lb<Arrow col="tag_cost"/>
-                          <span className="relative group/tip">
-                            <span className="text-amber-400 font-bold text-sm leading-none">*</span>
-                            <span className="pointer-events-none absolute bottom-full right-0 mb-2 w-56 rounded-lg bg-neutral-900 border border-neutral-700 px-3 py-2 text-xs font-medium text-neutral-100 shadow-xl opacity-0 group-hover/tip:opacity-100 transition-opacity duration-150 z-50 text-left leading-snug normal-case tracking-normal">
-                              Always verify pricing in Invex before quoting.
-                              <span className="absolute top-full right-3 border-4 border-transparent border-t-neutral-900" />
-                            </span>
-                          </span>
+                        <span className="flex items-center gap-1">
+                          $/lb
+                          <span title="Always verify pricing in Invex before quoting." className="text-amber-400 cursor-help">▲</span>
+                          <Arrow col="tag_cost" />
                         </span>
                       </th>
                       <TH col="master_age"    label="Age"        />
@@ -728,12 +723,11 @@ function PlateInventoryMain() {
                           </td>
                           {/* $/lb */}
                           <td className="px-3 py-2.5 font-medium text-green-700 whitespace-nowrap">
-                            <span className="relative group cursor-help">
+                            <span
+                              title="Always verify pricing in Invex before quoting."
+                              className="cursor-help border-b border-dashed border-green-400"
+                            >
                               ${row.tag_cost ? row.tag_cost.toFixed(4) : '—'}
-                              <span className="pointer-events-none absolute right-full top-1/2 -translate-y-1/2 mr-2 w-56 rounded-lg bg-neutral-900 border border-neutral-700 px-3 py-2 text-xs font-medium text-neutral-100 shadow-xl opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 text-left leading-snug">
-                                Always verify pricing in Invex before quoting.
-                                <span className="absolute left-full top-1/2 -translate-y-1/2 border-4 border-transparent border-l-neutral-900" />
-                              </span>
                             </span>
                           </td>
                           {/* Age */}
