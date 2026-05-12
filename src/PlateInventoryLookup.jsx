@@ -713,7 +713,16 @@ function PlateInventoryMain() {
                           </td>
                           {/* $/lb */}
                           <td className="px-3 py-2.5 font-medium text-green-700 whitespace-nowrap">
-                            ${row.tag_cost ? row.tag_cost.toFixed(4) : '—'}
+                            <span
+                              className="relative group cursor-help"
+                              title=""
+                            >
+                              ${row.tag_cost ? row.tag_cost.toFixed(4) : '—'}
+                              <span className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-52 rounded-lg bg-neutral-900 px-3 py-2 text-xs font-medium text-neutral-100 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50 text-center leading-snug">
+                                Always verify pricing in Invex before quoting — tag cost may not reflect current price.
+                                <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-neutral-900" />
+                              </span>
+                            </span>
                           </td>
                           {/* Age */}
                           <td className={`px-3 py-2.5 font-semibold whitespace-nowrap ${row.master_age > 120 ? 'text-red-600' : 'text-neutral-400'}`}>
