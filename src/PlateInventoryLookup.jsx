@@ -16,46 +16,76 @@ const DENSITIES = {
   '6061': 0.0975, '6063': 0.097, '7050': 0.102, '7075': 0.102, 'MIC6': 0.0975,
 };
 
-const LOC_COLORS = {
-  AURORA:        'bg-blue-100 text-blue-800',
-  'COON RAPIDS': 'bg-green-100 text-green-800',
-  GLENPOOL:      'bg-red-100 text-red-800',
-  'SANTA TERESA':'bg-purple-100 text-purple-800',
-  MIDDLEBURY:    'bg-teal-100 text-teal-800',
-  MID:           'bg-teal-100 text-teal-800',
-  PHOENIX:       'bg-orange-100 text-orange-800',
-  PHO:           'bg-orange-100 text-orange-800',
+// WHS code -> display name (same warehouse set as Extrusion Lookup)
+const WHS_NAMES = {
+  AUR: 'Aurora',
+  CNR: 'Coon Rapids',
+  GLN: 'Glenpool',
+  MID: 'Middlebury',
+  PHO: 'Phoenix',
+  SNT: 'Santa Teresa',
 };
 
-// Always show these in the dropdown even if no current inventory exists
-const KNOWN_LOCATIONS = ['AURORA', 'COON RAPIDS', 'GLENPOOL', 'MIDDLEBURY', 'MID', 'PHOENIX', 'PHO', 'SANTA TERESA'];
+const VALID_WHS = new Set(['AUR', 'CNR', 'GLN', 'MID', 'PHO', 'SNT']);
 
-// ─── Row parser ──────────────────────────────────────────────────────────────
-// Column layout (0-indexed) from "On Hand Inventory":
-// 0 Product | 2 Date | 4 Form | 5 Grade | 6 Finish | 9 Size (thickness str)
-// 10 SHT SZ | 12 Width | 13 Length | 14 Location | 15 WHS | 17 Invt Qlty
-// 22 Tag | 25 Master Age | 27 OH Value | 28 On Hand | 29 Ord Resrv
-// 30 Prod Resrv | 31 Ship Resrv | 32 Available Lbs | 33 TAG COST
+const LOC_COLORS = {
+  AUR: 'bg-blue-100 text-blue-800',
+  CNR: 'bg-green-100 text-green-800',
+  GLN: 'bg-red-100 text-red-800',
+  MID: 'bg-teal-100 text-teal-800',
+  PHO: 'bg-orange-100 text-orange-800',
+  SNT: 'bg-purple-100 text-purple-800',
+};
+
+// Always show all warehouses in the Location dropdown even with no current data
+const KNOWN_LOCATIONS = ['AUR', 'CNR', 'GLN', 'MID', 'PHO', 'SNT'];
+
+// ─── Row parser ────────────────────────────────────────────────────────────────────────────
+// Same file format as Extrusion Lookup. Column indices (0-based):
+// [3]=Form  | [4]=Grade | [5]=Finish | [7]=Thickness | [8]=Width | [9]=Length
+// [10]=WHS  | [12]=Hold Sts | [17]=Tag | [19]=On Hand | [20]=OH Value
+// [21]=Ord Resrv | [22]=Prod Resrv | [23]=Ship Resrv | [25]=Master Age | [32]=Cost
+//
+// Include: APL (all gauges) | ACS (.249" and .250" only -- plate-gauge sheet)
 function parseRow(row) {
-  const thStr = String(row[9] ?? '').trim();
+  const form = String(row[3] ?? '').trim();
+
+  if (form === 'ACS') {
+    const th = parseFloat(String(row[7] ?? '').trim());
+    const rounded = Math.round(th * 1000);
+    if (rounded !== 249 && rounded !== 250) return null;
+  } else if (form !== 'APL') {
+    return null;
+  }
+
+  const whs = String(row[10] ?? '').trim();
+  if (!VALID_WHS.has(whs)) return null;
+
+  if (String(row[12] ?? '').trim() === 'R') return null;
+
+  const thStr    = String(row[7]  ?? '').trim();
+  const onHand   = parseFloat(row[19]) || 0;
+  const ohValue  = parseFloat(row[20]) || 0;
+  const ordResrv = parseFloat(row[21]) || 0;
+  const proResrv = parseFloat(row[22]) || 0;
+  const shpResrv = parseFloat(row[23]) || 0;
+  const available = Math.max(0, onHand - ordResrv - proResrv - shpResrv);
+
   return {
-    grade:         String(row[5]  ?? '').trim(),
-    finish:        String(row[6]  ?? '').trim(),
+    form,
+    grade:         String(row[4]  ?? '').trim(),
+    finish:        String(row[5]  ?? '').trim(),
     thickness_str: thStr,
     thickness:     parseFloat(thStr) || 0,
-    sht_sz:        String(row[10] ?? '').trim(),
-    width:         parseFloat(row[12]) || 0,
-    length:        parseFloat(row[13]) || 0,
-    location:      String(row[14] ?? '').trim(),
-    whs:           String(row[15] ?? '').trim(),
-    invt_qlty:     String(row[17] ?? '').trim(),
-    tag:           String(row[22] ?? '').trim(),
+    width:         parseFloat(row[8])  || 0,
+    length:        parseFloat(row[9])  || 0,
+    location:      whs,
+    tag:           String(row[17] ?? '').trim(),
+    oh_value:      ohValue,
+    on_hand:       onHand,
+    available_lbs: available,
     master_age:    parseInt(row[25])   || 0,
-    oh_value:      parseFloat(row[27]) || 0,
-    on_hand:       parseFloat(row[28]) || 0,
-    ord_resrv:     parseFloat(row[29]) || 0,
-    available_lbs: parseFloat(row[32]) || 0,
-    tag_cost:      parseFloat(row[33]) || 0,
+    tag_cost:      parseFloat(row[32]) || 0,
   };
 }
 
@@ -259,8 +289,9 @@ function PlateInventoryMain() {
                          : new Date().toISOString();
 
       const parsed = raw.slice(1)
-        .filter(r => r[5])
-        .map(parseRow);
+        .filter(r => r[3])
+        .map(parseRow)
+        .filter(Boolean);
 
       setUploadMsg(`Parsed ${parsed.length} rows — saving…`);
 
@@ -526,7 +557,6 @@ function PlateInventoryMain() {
                 { label: 'Grade',    val: fGrade,  set: setFGrade,  opts: grades },
                 { label: 'Temper',   val: fFinish, set: setFFinish, opts: finishes },
                 { label: 'Gauge"',   val: fThick,  set: setFThick,  opts: thicks },
-                { label: 'Location', val: fLoc,    set: setFLoc,    opts: locations },
               ].map(({ label, val, set, opts }) => (
                 <div key={label}>
                   <label className="block text-xs font-semibold mb-1.5 text-neutral-600">{label}</label>
@@ -539,6 +569,18 @@ function PlateInventoryMain() {
                   </select>
                 </div>
               ))}
+              {/* Location — separate so we can format options as "AUR - Aurora" */}
+              <div>
+                <label className="block text-xs font-semibold mb-1.5 text-neutral-600">Location</label>
+                <select value={fLoc} onChange={e => { setFLoc(e.target.value); setPage(1); }}
+                  className="w-full px-3 py-2 text-sm border border-neutral-300 rounded-lg focus:ring-2 focus:ring-red-500 bg-white font-medium outline-none">
+                  {locations.map(o => (
+                    <option key={o} value={o}>
+                      {o === 'ALL' ? 'All Locations' : `${o} — ${WHS_NAMES[o] || o}`}
+                    </option>
+                  ))}
+                </select>
+              </div>
               <div>
                 <label className="block text-xs font-semibold mb-1.5 text-neutral-600">Min Avail Lbs</label>
                 <input
@@ -699,10 +741,11 @@ function PlateInventoryMain() {
                             {row.length}"
                           </td>
                           {/* Location */}
-                          <td className="px-3 py-2.5">
-                            <span className={`px-2 py-0.5 rounded-full text-xs font-semibold whitespace-nowrap ${locCls}`}>
-                              {row.location}
-                            </span>
+                          <td className="px-3 py-2.5 whitespace-nowrap">
+                            <div className="flex items-center gap-1.5">
+                              <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${locCls}`}>{row.location}</span>
+                              <span className="text-xs text-neutral-400 hidden xl:inline">{WHS_NAMES[row.location] || ''}</span>
+                            </div>
                           </td>
                           {/* Available Lbs */}
                           <td className="px-3 py-2.5 font-bold text-neutral-900 whitespace-nowrap">
