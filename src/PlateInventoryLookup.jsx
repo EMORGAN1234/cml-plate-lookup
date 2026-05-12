@@ -718,7 +718,7 @@ function PlateInventoryMain() {
                             )}
                           </td>
                           {/* Tag */}
-                          <td className="px-3 py-2.5 font-mono text-xs text-neutral-500 whitespace-nowrap">
+                          <td className="px-3 py-2.5 font-semibold text-neutral-800 whitespace-nowrap">
                             {row.tag || '—'}
                           </td>
                           {/* $/lb */}
